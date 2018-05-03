@@ -1,0 +1,24 @@
+{
+  "name": "my-app",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "braft-editor": "^1.8.11",
+    "draft-js": "^0.10.5",
+    "draft-js-custom-styles": "^2.0.4",
+    "draft-js-import-html": "^1.2.1",
+    "draftjs-to-html": "^0.8.3",
+    "draftjs-utils": "^0.9.4",
+    "html-to-draftjs": "^1.4.0",
+    "react": "^16.3.2",
+    "react-dom": "^16.3.2",
+    "react-draft-wysiwyg": "^1.12.13",
+    "react-scripts": "1.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
