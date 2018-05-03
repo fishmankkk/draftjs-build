@@ -9,16 +9,38 @@ import htmlToDraft from 'html-to-draftjs'
 import {getSelectedBlock} from 'draftjs-utils'
 import Immutable from 'immutable'
 import {stateFromHTML} from 'draft-js-import-html'
-
 import './draft-wy.css'
 import './draft.less'
 
 const blockRenderMap = Immutable.Map({
+  'unstyled': {
+      element: 'div',
+      aliasedElements: ['p'],
+    },
+    'hr': {
+      element: 'hr'
+    },
     'atomic': {
-        element: ''
-      },
-  });
-  const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
+      element: ''
+    },
+    // 'code-block': {
+    //   element: 'code',
+    //   wrapper: DefaultDraftBlockRenderMap.get('code-block').wrapper
+    // },
+    'code-block': {
+      element: '',
+      wrapper: <CodeBlock/>
+    }
+});
+const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
+const CodeBlock = (props) => {
+  const {styles, offsetkey, children} = props;
+  return (
+    <div data-offset-key={offsetkey} className="test">
+      21321321
+    </div>
+  );
+};
 export default class extends React.Component {
     state = {
       editorState: '',
@@ -49,7 +71,7 @@ export default class extends React.Component {
         htmlStr = htmlStr.length > 8 ? htmlStr : ''
         console.log(htmlStr)
         htmlStr = htmlStr.replace(/<p><\/p>/g, '<p>&nbsp;</p>')
-        // htmlStr = htmlStr + '<header-two>'
+        // htmlStr = htmlStr + '<p className="online">&nbsp;</p>'
         this.props.setFiledCallBack(htmlStr)
       })
     };
@@ -99,6 +121,7 @@ export default class extends React.Component {
           onEditorStateChange={this.onEditorStateChange}
           toolbarCustomButtons={[<CustomOption />]}
           blockRenderMap={extendedBlockRenderMap}
+          customStyleMap={styleMap}
           toolbar={{
             options: ['inline', 'blockType', 'fontSize', 'fontFamily', 'list', 'textAlign', 'colorPicker', 'link', 'embedded', 'image', 'remove', 'history']
           }}
@@ -108,28 +131,41 @@ export default class extends React.Component {
     }
 }
 
+const styleMap = {
+  CODE: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    fontFamily: '"Inconsolata", "Menlo", "Consolas", monospace',
+    fontSize: 16,
+    padding: '0 2em',
+  },
+  HR: {
+    backgroundColor: '#ddd',
+    height: '2px',
+    width: '100%',
+    margin: '5px 0',
+  },
+  LS: {
+    letterSpacing: '20px'
+  },
+  LH: {
+    lineHeight: '50px'
+  },
+  PADDING: {
+    padding: '0 2em',
+    wordBreak: 'break-all',
+    display: 'inline-block'
+  },
+};
+
 class CustomOption extends React.Component {
   static propTypes = {
     onChange: PropTypes.func,
     editorState: PropTypes.object
   };
 
-  blocksTypes = [
-    { label: 'Normal', style: 'unstyled' },
-    { label: 'H1', style: 'header-one' },
-    { label: 'H2', style: 'header-two' },
-    { label: 'H3', style: 'header-three' },
-    { label: 'H4', style: 'header-four' },
-    { label: 'H5', style: 'header-five' },
-    { label: 'H6', style: 'header-six' },
-    { label: 'Blockquote', style: 'blockquote' },
-    { label: 'Code', style: 'code' },
-    { label: 'div', style: 'unstyled' },
-  ];
-
   addHr = (blockType) => {
     const { editorState, onChange } = this.props
-    var contentStateWithEntity = editorState.getCurrentContent().createEntity('hr', 'IMMUTABLE', {})
+    var contentStateWithEntity = editorState.getCurrentContent().createEntity('code-block', 'IMMUTABLE', {})
     console.log(contentStateWithEntity)
     var entityKey = contentStateWithEntity.getLastCreatedEntityKey()
     console.log(entityKey)
@@ -145,7 +181,40 @@ class CustomOption extends React.Component {
     const { editorState, onChange } = this.props
     const newState = RichUtils.toggleInlineStyle(
       editorState,
-      'color-red'
+      'HR'
+    )
+    if (newState) {
+      onChange(newState)
+    }
+  };
+
+  toggleLS = () => {
+    const { editorState, onChange } = this.props
+    const newState = RichUtils.toggleInlineStyle(
+      editorState,
+      'LS'
+    )
+    if (newState) {
+      onChange(newState)
+    }
+  };
+
+  toggleLH = () => {
+    const { editorState, onChange } = this.props
+    const newState = RichUtils.toggleInlineStyle(
+      editorState,
+      'LH'
+    )
+    if (newState) {
+      onChange(newState)
+    }
+  };
+
+  togglePADDING = () => {
+    const { editorState, onChange } = this.props
+    const newState = RichUtils.toggleInlineStyle(
+      editorState,
+      'PADDING'
     )
     if (newState) {
       onChange(newState)
@@ -155,10 +224,19 @@ class CustomOption extends React.Component {
   render () {
     return (
       <div style={{display: 'flex'}}>
-        <div onClick={this.toggleBold} title='格式刷'><div className='rdw-option-wrapper' type='printer' >1</div></div>
+        <div title='格式刷'><div className='rdw-option-wrapper' type='printer' >
+        <select>
+          <option value ="1">1</option>
+          <option value ="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+        </select>
+        </div></div>
         <div onClick={this.addHr} title='分割线'><div className='rdw-option-wrapper' type='printer' >-</div></div>
-        <div onClick={this.addHr} title='分割线'><div className='rdw-option-wrapper' type='printer' >3</div></div>
-        <div onClick={this.addHr} title='格式刷'><div className='rdw-option-wrapper' type='printer' >4</div></div>
+        <div onClick={this.toggleBold} title='分割线'><div className='rdw-option-wrapper' type='printer' >3</div></div>
+        <div onClick={this.togglePADDING} title='字距'><div className='rdw-option-wrapper' type='printer' >PADDING</div></div>
+        <div onClick={this.toggleLS} title='字距'><div className='rdw-option-wrapper' type='printer' >LS</div></div>
+        <div onClick={this.toggleLH} title='行高'><div className='rdw-option-wrapper' type='printer' >LH</div></div>
       </div>
     )
   }

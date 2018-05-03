@@ -43,7 +43,7 @@ class App extends Component {
         <p className="App-intro">
           To get started, edit <code>src/App.js</code> and save to reload.
         </p>
-        <div style={{margin: '30px', border: '1px solid #ccc'}}>
+        <div style={{margin: '30px', border: '1px solid #ccc', width: '750px'}}>
           {/* <BraftEditor {...editorProps}/> */}
           <DraftEdit data={this.state.content} setFiledCallBack={this.setFiledCallBackTime} />
         </div>
