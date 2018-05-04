@@ -1,7 +1,7 @@
 import React from 'react'
 // import Api from 'utils/api'
 import PropTypes from 'prop-types'
-import {EditorState, convertToRaw, ContentState, Modifier, RichUtils, AtomicBlockUtils, ContentBlock, genKey, DefaultDraftBlockRenderMap} from 'draft-js'
+import {EditorState, convertToRaw, ContentState, Modifier, RichUtils, convertFromRaw, ContentBlock, genKey, DefaultDraftBlockRenderMap} from 'draft-js'
 // import {Icon} from 'antd'
 import {Editor} from 'react-draft-wysiwyg'
 import draftToHtml from 'draftjs-to-html'
@@ -12,41 +12,50 @@ import {stateFromHTML} from 'draft-js-import-html'
 import './draft-wy.css'
 import './draft.less'
 
-const blockRenderMap = Immutable.Map({
-  'unstyled': {
-      element: 'div',
-      aliasedElements: ['p'],
-    },
-    'hr': {
-      element: 'hr'
-    },
-    'atomic': {
-      element: ''
-    },
-    // 'code-block': {
-    //   element: 'code',
-    //   wrapper: DefaultDraftBlockRenderMap.get('code-block').wrapper
-    // },
-    'code-block': {
-      element: '',
-      wrapper: <CodeBlock/>
-    }
-});
-const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
-const CodeBlock = (props) => {
-  const {styles, offsetkey, children} = props;
-  return (
-    <div data-offset-key={offsetkey} className="test">
-      21321321
-    </div>
-  );
-};
+class CustomBlockContent extends React.Component {
+	render() {
+  	return (
+    	<div className="online">
+        Custom block with <a href="http://www.google.com">link</a>
+      </div>
+    );
+  }
+}
+
+const customBlockRenderMap = DefaultDraftBlockRenderMap.merge(Immutable.Map({
+  'custom': {
+    element: 'div',
+  },
+}));
+
 export default class extends React.Component {
     state = {
       editorState: '',
       analysisState: '',
       reInitial: true
     };
+
+    _getCustomBlockRenderer(block) {
+      return block => {
+        if (block.getType() === "custom") {
+          return {
+            component: () => (
+              <div
+                key={block.getKey()}
+                className="custom"
+                onMouseEnter={this._activateMouseInteraction}
+                onMouseLeave={this._deactivateMouseInteraction}
+              >
+                <CustomBlockContent />
+              </div>
+            ),
+            editable: false,
+          };
+        }
+        
+        return null;
+      };
+    }
 
     componentWillReceiveProps (nextProps, props) {
       if (nextProps.data && this.state.reInitial) {
@@ -71,7 +80,6 @@ export default class extends React.Component {
         htmlStr = htmlStr.length > 8 ? htmlStr : ''
         console.log(htmlStr)
         htmlStr = htmlStr.replace(/<p><\/p>/g, '<p>&nbsp;</p>')
-        // htmlStr = htmlStr + '<p className="online">&nbsp;</p>'
         this.props.setFiledCallBack(htmlStr)
       })
     };
@@ -120,10 +128,12 @@ export default class extends React.Component {
           handlePastedText={this.handlePastedText}
           onEditorStateChange={this.onEditorStateChange}
           toolbarCustomButtons={[<CustomOption />]}
-          blockRenderMap={extendedBlockRenderMap}
+          blockRenderMap={customBlockRenderMap}
+          blockRendererFn={this._getCustomBlockRenderer()}
           customStyleMap={styleMap}
           toolbar={{
-            options: ['inline', 'blockType', 'fontSize', 'fontFamily', 'list', 'textAlign', 'colorPicker', 'link', 'embedded', 'image', 'remove', 'history']
+            options: ['inline', 'blockType', 'fontSize', 'fontFamily', 'list', 'textAlign', 'colorPicker', 'link', 'embedded', 'image', 'remove', 'history'],
+            oneline: {className: 'editor-opacity'},
           }}
         />
 
@@ -165,16 +175,40 @@ class CustomOption extends React.Component {
 
   addHr = (blockType) => {
     const { editorState, onChange } = this.props
-    var contentStateWithEntity = editorState.getCurrentContent().createEntity('code-block', 'IMMUTABLE', {})
-    console.log(contentStateWithEntity)
-    var entityKey = contentStateWithEntity.getLastCreatedEntityKey()
-    console.log(entityKey)
-    const contentState = AtomicBlockUtils.insertAtomicBlock(
-      editorState,
-      entityKey,
-      ' '
-    )
-    onChange(contentState)
+  
+    // var contentStateWithEntity = editorState.getCurrentContent().createEntity('code-block', 'IMMUTABLE', {})
+    // console.log(contentStateWithEntity)
+    // var entityKey = contentStateWithEntity.getLastCreatedEntityKey()
+    // console.log(entityKey)
+    // const contentState = AtomicBlockUtils.insertAtomicBlock(
+    //   editorState,
+    //   entityKey,
+    //   ' '
+    // )
+    // onChange(editorState)
+
+    let editorState1 = EditorState.createWithContent(convertFromRaw({
+    	entityMap: {},
+    	blocks: [
+        // {
+        //   type: "header-one",
+        //   text: "Hello there"
+        // },
+        // {
+        //   type: "unstyled",
+        //   text: "Try:\nA) Clicking on the link\nB) Dragging the link from custom block to text"
+        // },
+        {
+          type: "custom",
+          text: ""
+        }
+      ],
+  	}));
+    // this.state = {
+    //   editorState: editorState1,
+    //   mouseIsOverCustomBlock: false,
+    // };
+    onChange(editorState1)
   };
 
   toggleBold = () => {
